@@ -2,7 +2,7 @@ from pybricks.hubs import PrimeHub
 from pybricks.pupdevices import Motor, ColorSensor
 from pybricks.parameters import Button, Color, Direction, Port, Side, Stop, Axis
 from pybricks.robotics import DriveBase
-from pybricks.tools import wait, StopWatch, hub_menu
+from pybricks.tools import wait, StopWatch, hub_menu, Matrix
 
 hub = PrimeHub(Axis.Y, Axis.Z)
 
@@ -14,7 +14,7 @@ COLOR_PRESETS = {
 }
 
 
-leftwheel = Motor(Port.A, Direction.CLOCKWISE)
+leftwheel = Motor(Port.A, Direction.COUNTERCLOCKWISE)
 rightwheel = Motor(Port.B, Direction.CLOCKWISE)
 
 shell = Motor(Port.E)
@@ -25,3 +25,27 @@ wheels = DriveBase(leftwheel, rightwheel, 62.4, 100)
 
 CIRCUMFERENCE = 18.89
 SHELL_RATIO = 360 / 1795
+
+TWO = Matrix([ 
+    [0, 100, 100, 100, 0],
+    [0, 0, 0, 100, 0],
+    [0, 100, 100, 100, 0],
+    [0, 100, 0, 0, 0],
+    [0, 100, 100, 100, 0],
+])
+
+SIX = Matrix([
+    [0, 100, 100, 100, 0],
+    [0, 100, 0, 0, 0],
+    [0, 100, 100, 100, 0],
+    [0, 100, 0, 100, 0],
+    [0, 100, 100, 100, 0],
+])
+
+ONE = Matrix([
+    [0, 0, 100, 0, 0],
+    [0, 100, 100, 0, 0],
+    [0, 0, 100, 0, 0],
+    [0, 0, 100, 0, 0],
+    [0, 100, 100, 100, 0],
+])
