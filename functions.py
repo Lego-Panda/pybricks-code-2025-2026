@@ -1,5 +1,3 @@
-from robot_conf import CIRCUMFERENCE
-from robot_conf import leftwheel
 from pybricks.hubs import PrimeHub
 from pybricks.pupdevices import Motor, ColorSensor
 from pybricks.parameters import Button, Color, Direction, Port, Side, Stop, Axis
@@ -13,13 +11,15 @@ def singnum(value):
     return value / abs(value)
 
 class Robot:
-    def __init__(self,kp=0, ki=0, kd=0,shellKp=0,shellKi=0,shellKd=0, shellTol=0, tol=0, wait_time=0, ks=0):
+    def __init__(self,kp=0, ki=0, kd=0,turnKp=0, turnKi=0, turnKd=0,shellKp=0,shellKi=0,shellKd=0, shellTol=0, turnTol=0, turn_wait_time=0):
         self.kp = kp
         self.ki = ki
         self.kd = kd
-        self.tol = tol
-        self.wait_time = wait_time
-        self.ks = ks
+        self.turnKp = turnKp
+        self.turnKi = turnKi
+        self.turnKd = turnKd
+        self.turnTol = turnTol
+        self.turn_wait_time = turn_wait_time
         self.shellKp = shellKp
         self.shellKi = shellKi
         self.shellKd = shellKd
@@ -42,7 +42,7 @@ class Robot:
             pidValue = self.kp * error + self.ki * self.errorSum + self.kd * (error - self.lastError)
 
             rightwheel.run(int(speed + pidValue))
-            leftwheel.run(int(-speed + pidValue))
+            leftwheel.run(int(speed - pidValue))
 
             self.lastError = error
             self.errorSum += error
@@ -62,7 +62,7 @@ class Robot:
 
         min_speed = 100 if speed >= 0 else -100
 
-        thirty_percent_dist = (distance / CIRCUMFERENCE * 360) * 0.3
+        twenty_percent_dist = (distance / CIRCUMFERENCE * 360) * 0.2
 
         while abs(leftwheel.angle()) < distance / CIRCUMFERENCE * 360:
 
@@ -70,11 +70,11 @@ class Robot:
 
             error = 0  - hub.imu.heading()
 
-            if abs(leftwheel.angle()) <= thirty_percent_dist and thirty_percent_dist > 0:
-                current_speed = min_speed + (speed - min_speed) * (abs(leftwheel.angle()) / thirty_percent_dist)
+            if abs(leftwheel.angle()) <= twenty_percent_dist and twenty_percent_dist > 0:
+                current_speed = min_speed + (speed - min_speed) * (abs(leftwheel.angle()) / twenty_percent_dist)
 
-            elif remaining_distance <= thirty_percent_dist and thirty_percent_dist > 0:
-                current_speed = min_speed + (speed - min_speed) * (remaining_distance / thirty_percent_dist)
+            elif remaining_distance <= twenty_percent_dist and twenty_percent_dist > 0:
+                current_speed = min_speed + (speed - min_speed) * (remaining_distance / twenty_percent_dist)
 
             else:
                 current_speed = speed
@@ -82,7 +82,7 @@ class Robot:
             pidValue = self.kp * error + self.ki * self.errorSum + self.kd * (error - self.lastError)
 
             rightwheel.run(int(current_speed + pidValue))
-            leftwheel.run(int(-current_speed + pidValue))
+            leftwheel.run(int(current_speed - pidValue))
 
             self.lastError = error
             self.errorSum += error
@@ -104,14 +104,14 @@ class Robot:
         time_at_setpoint = 0
         wait(100)
 
-        while time_at_setpoint < self.wait_time:
+        while time_at_setpoint < self.turn_wait_time:
 
             error = hub.imu.heading()
 
-            pidValue = self.kp * error + self.ki * self.errorSum + self.kd * (error - self.lastError)
+            pidValue = self.turnKp * error + self.turnKi * self.errorSum + self.turnKd * (error - self.lastError)
 
-            rightwheel.run(int(speed * singnum(degrees) - pidValue))
-            leftwheel.run(int(speed * singnum(degrees) - pidValue))
+            rightwheel.run(int(speed * singnum(degrees) + pidValue))
+            leftwheel.run(int(-speed * singnum(degrees) - pidValue))
 
             self.lastError = error
             self.errorSum += error
@@ -119,10 +119,10 @@ class Robot:
             if not on_setpoint: time_at_setpoint += 0.02
             else: time_at_setpoint = 0
 
-            on_setpoint = abs(hub.imu.heading()) >= self.tol
+            on_setpoint = abs(hub.imu.heading()) >= self.turnTol
 
-        leftwheel.stop()
-        rightwheel.stop()
+        leftwheel.brake()
+        rightwheel.brake()
 
     def shellTurn(self, degrees, speed=800):
         
@@ -154,7 +154,7 @@ class Robot:
 
         shell.stop()
 
-    def turnWhileShell(self, shellDegrees, turnDegrees, shellSpeed=500, turnSpeed=200):
+    def turnWhileShell(self, shellDegrees, turnDegrees, shellSpeed=1000, turnSpeed=125):
         hub.imu.reset_heading(-turnDegrees)
         shell.reset_angle(0)
         self.errorSum = 0
@@ -176,10 +176,10 @@ class Robot:
             if not turnAtSetPoint:
                 turnError = hub.imu.heading()
 
-                turnPidValue = self.kp * turnError + self.ki * turnErrorSum + self.kd * (turnError - turnLastError)
+                turnPidValue = self.turnKp * turnError + self.turnKi * turnErrorSum + self.turnKd * (turnError - turnLastError)
 
                 rightwheel.run(int(turnSpeed * singnum(turnDegrees) - turnPidValue))
-                leftwheel.run(int(turnSpeed * singnum(turnDegrees) - turnPidValue))
+                leftwheel.run(int(-turnSpeed * singnum(turnDegrees) + turnPidValue))
 
                 turnLastError = turnError
 
@@ -189,7 +189,7 @@ class Robot:
                 if not turn_on_setpoint:
                     turnAtSetPoint = True
 
-                turn_on_setpoint = abs(hub.imu.heading()) >= self.tol
+                turn_on_setpoint = abs(hub.imu.heading()) >= self.turnTol
 
             if turnAtSetPoint:
                 leftwheel.stop()
@@ -214,7 +214,7 @@ class Robot:
                 if not shell_on_setpoint:
                     shellAtSetPoint = True
 
-                shell_on_setpoint = abs(hub.imu.heading()) >= self.tol
+                shell_on_setpoint = abs(hub.imu.heading()) >= self.turnTol
 
                 wait(100)
 
