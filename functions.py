@@ -238,7 +238,7 @@ class Robot:
 
             error = shell.angle() * SHELL_RATIO
 
-            pidValue = self.kp * error + self.ki * self.errorSum + self.kd * (error - self.lastError)
+            pidValue = self.shellKp * error + self.shellKp * self.errorSum + self.shellKd * (error - self.lastError)
 
             shell.run(int(speed * singnum(degrees) - pidValue))
 
@@ -261,7 +261,7 @@ class Robot:
             else:
                 time_at_setpoint = 0
 
-            on_setpoint = (shell.angle() * SHELL_RATIO) >= self.tol 
+            on_setpoint = (shell.angle() * SHELL_RATIO) >= self.shellTol 
 
             wait(100)
 
@@ -291,3 +291,22 @@ class Robot:
         percent = max(0, min(100, percent))  # clamp 0–100
 
         print(percent)
+
+    def resetShell(self, preset, speed):
+        stop_color, slow_color = COLOR_PRESETS[preset]
+
+        shell.run(speed)
+
+        while True:
+            current_color = colorS.color()
+
+            if current_color == stop_color:
+                wait(150)
+                if colorS.color() == stop_color:
+                    shell.stop()
+                    break
+
+            elif current_color == slow_color:
+                speed = 400
+            else:
+                speed = speed
