@@ -111,6 +111,7 @@ def run3():
     rob.stopColor("stopYellow")
 
 ####
+
 def run4():
     rob = Robot(kp=5, ki=0, kd=10, turnKp=1, turnKi=0, turnKd=0,shellKp=2, shellKi=0, shellKd=10, shellTol=0, turnTol=10, turn_wait_time=1)
 
@@ -130,7 +131,8 @@ def run4():
     wait(300)
     rob.turnWhileShell(-90, 90, 1000, 125)
     wait(300)
-    rob.pid(8, 150)
+    # rob.pid(8, 150)
+    rob.accelDecel(4, 300)
     wait(300)
     rob.shellTurn(-10, -400)
     wait(300)
@@ -138,40 +140,62 @@ def run4():
     wait(300)
     rob.pid(10,-300)
     wait(400)
-    rob.turn(-55, 200)
+    rob.turn(-53, 200)
     wait(300)
-    rob.pid(13, -100)
-    wait(200)
+    rob.pid(7, -100)
+    wait(1000)
+    rob.pid(2, 100)
+    wait(1000)
     rob.turn(-20, 200)
-    # wait(200)
-    # rob.accelDecel(70, 650)
-    # wait(200)
-    # rob.turn(30, 200)
-    # wait(300)
-    # rob.accelDecel(20, 650)
-    # wait(300)
-    # rob.stopColor("stopYellow")
+    wait(200)
+    rob.accelDecel(100, 525)
+    wait(200)
+    rob.stopColor("stopYellow", 365, 800)
 
 ###
 
 def run5():
-    rob = Robot(kp=0.08, ki=0, kd=0.1, shellKp=2, shellKi=0, shellKd=10, shellTol=0, tol=10, wait_time=1)
+    # rob = Robot(kp=0.08, ki=0, kd=0.1, shellKp=2, shellKi=0, shellKd=10, shellTol=0, tol=10, wait_time=1)
+    rob = Robot(kp=2, ki=0, kd=5, turnKp=1, turnKi=0, turnKd=2,shellKp=2, shellKi=0, shellKd=10, shellTol=0, turnTol=10, turn_wait_time=1)
 
-    arm.run_time(1000, 600)
+    arm.run(1000)
     wait(300)
-    rob.accelDecel(69, -650)
+    arm.stop()
     wait(300)
-    rob.turn(45, 200)
+    rob.accelDecel(69, -525)
     wait(300)
-    leftwheel.run(1000)
-    rightwheel.run(-1000)
-    wait(3000)
-    leftwheel.stop()
-    rightwheel.stop()
+    rob.turn(48, 125)
     wait(300)
-    arm.run_time(1000, 1000)
+
+    wheels.drive(-1000, 0)
+    
+    wait(1500)
+    wheels.stop()
+    wait(300)
+
+    arm.run_time(1000, 1500)
     wait(300)
     rob.pid(15, 525)
+    wait(300)
+    arm.run_time(1000, 600)
+    wait(300)
+    rob.turn(70, 125)
+    wait(300)
+    rob.pid(20, 525)
+    wait(300)
+    rob.turn(30, 500)
+    wait(300)
+    rob.turn(-30, 500)
+    wait(300)
+    rob.turn(50, 125)
+    wait(300)
+    arm.run(-1000)
+    wait(600)
+    arm.stop()
+
+
+
+###
 
 def run7():
     rob = Robot(kp=0.08, ki=0, kd=0.1, shellKp=2, shellKi=0, shellKd=10, shellTol=0, tol=10, wait_time=1)
@@ -198,19 +222,53 @@ def run7():
     # wait(200)
     rob.pid(45, 525)
 
+###
+
+def run8():
+    rob = Robot(kp=2, ki=0, kd=10, turnKp=1.1, turnKi=0, turnKd=0,shellKp=2, shellKi=0, shellKd=10, shellTol=0, turnTol=10, turn_wait_time=1)
+
+    rob.accelDecel(21, -525)
+    wait(300)
+    rob.turn(-90, 125)
+    wait(300)
+    rob.accelDecel(55, -525)
+    wait(300)
+    rob.turn(110, 150)
+    wait(300)
+    rob.pid(8, -100)
+    wait(300)
+    rob.turn(-20, 125)
+    wait(300)
+    arm.run_time(700, 1500)
+    wait(300)
+    rob.turn(15, 125)
+    wait(300)
+    rob.pid(5, -100)
+    wait(300)
+    rob.pid(10, 525)
+    wait(300)
+    rob.turn(-40, 125)
+    wait(300)
+    rob.accelDecel(80, -525)
+
+###
+
 def test():
     # rob = Robot(kp=0.08, ki=0, kd=0.1, shellKp=2, shellKi=0, shellKd=10, shellTol=0, tol=10, wait_time=1)
     rob = Robot(kp=5, ki=0, kd=10, turnKp=1, turnKi=0, turnKd=0,shellKp=2, shellKi=0, shellKd=10, shellTol=0, turnTol=10, turn_wait_time=1)
 
     # rob.turnWhileShell(90, -90, 600, 125)
-    arm.run_time(1000, 10000)
+    # arm.run_time(-660, 3000)
+    arm.run_time(1000, 1000)
+    # shell.run(800)
+    # wait(100000)
 
 ###
 
 def battery():
     rob = Robot()
-    # rob.battery_percent()
-    hub.display.icon(Icon.HAPPY)
+    rob.battery_percent()
+    # hub.display.icon(Icon.HAPPY)
 
 ######
 
@@ -220,12 +278,14 @@ def battery():
 
 # run3()
 
-run4()
+# run4()
 
 # run5()
 
 # run7()
 
+# run8()
+
 # test()
 
-# battery()
+battery()
