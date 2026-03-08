@@ -14,7 +14,7 @@ selected = hub_menu("H","1", "2", "3", "4", "5", "6", "7", "8", "B")
 
 if selected == "H":
     leftwheel.run(1000)
-    rightwheel.run(-1000)
+    rightwheel.run(1000)
     wait(100000000)
 if selected == "1":
     run1()
