@@ -310,3 +310,17 @@ class Robot:
                 speed = 400
             else:
                 speed = speed
+
+    def ziun(self, times_of_backshot, speed, behind_speed):
+        for i in range(times_of_backshot):
+            wheels.drive(-speed, 0)
+            wait(1500)
+            wheels.brake()
+            wait(300)
+            wheels.drive(behind_speed, 0)
+            wait(400)
+            wheels.brake()
+            wait(300)
+            wheels.drive(-behind_speed, 0)
+            wait(400)
+            wheels.brake()
