@@ -185,6 +185,27 @@ def run5():
 
 ###
 
+def run6():
+    rob = Robot(kp=2, ki=0, kd=5, turnKp=1, turnKi=0, turnKd=2,shellKp=2, shellKi=0, shellKd=10, shellTol=0, turnTol=10, turn_wait_time=1)
+
+    rob.pid(80, -525)
+    wait(300)
+    rob.turnWhileShell(90, -90)
+    wait(300)
+    rob.pid(10, -100)
+    wait(300)
+    arm.run_time(1000, 1000)
+    wait(300)
+    arm.run_time(-1000, 500)
+    wait(300)
+    rob.pid(10, 100)
+    wait(300)
+    rob.turn(90, 125)
+    wait(300)
+    rob.accelDecel(80, 525)
+
+###
+
 def run7():
     rob = Robot(kp=0.08, ki=0, kd=0.1, shellKp=2, shellKi=0, shellKd=10, shellTol=0, tol=10, wait_time=1)
 
