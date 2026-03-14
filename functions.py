@@ -7,7 +7,7 @@ from robot_conf import *
 
 hub = PrimeHub(Axis.Y, Axis.Z)
 
-def singnum(value):
+def signnum(value):
     return value / abs(value)
 
 class Robot:
@@ -110,8 +110,8 @@ class Robot:
 
             pidValue = self.turnKp * error + self.turnKi * self.errorSum + self.turnKd * (error - self.lastError)
 
-            rightwheel.run(int(speed * singnum(degrees) + pidValue))
-            leftwheel.run(int(-speed * singnum(degrees) - pidValue))
+            rightwheel.run(int(speed * signnum(degrees) + pidValue))
+            leftwheel.run(int(-speed * signnum(degrees) - pidValue))
 
             self.lastError = error
             self.errorSum += error
@@ -124,6 +124,7 @@ class Robot:
         leftwheel.brake()
         rightwheel.brake()
 
+    
     def shellTurn(self, degrees, speed=800):
         
         self.errorSum = 0
@@ -137,7 +138,7 @@ class Robot:
 
             pidValue = self.shellKp * error + self.shellKi * self.errorSum + self.shellKd * (error - self.lastError)
 
-            shell.run(int(speed * singnum(degrees) - pidValue))
+            shell.run(int(speed * signnum(degrees) - pidValue))
 
             self.lastError = error
             self.errorSum += error
@@ -154,8 +155,9 @@ class Robot:
 
         shell.stop()
 
-    def turnWhileShell(self, shellDegrees, turnDegrees, shellSpeed=1000, turnSpeed=125):
+    def turnWhileShell(self, preset, shellDegrees, turnDegrees, shellSpeed=1000, turnSpeed=125):
         hub.imu.reset_heading(-turnDegrees)
+        stop_color, slow_color = COLOR_PRESETS[preset]
         shell.reset_angle(0)
         self.errorSum = 0
         turnLastError = 0
@@ -178,8 +180,8 @@ class Robot:
 
                 turnPidValue = self.turnKp * turnError + self.turnKi * turnErrorSum + self.turnKd * (turnError - turnLastError)
 
-                rightwheel.run(int(turnSpeed * singnum(turnDegrees) - turnPidValue))
-                leftwheel.run(int(-turnSpeed * singnum(turnDegrees) + turnPidValue))
+                rightwheel.run(int(turnSpeed * signnum(turnDegrees) - turnPidValue))
+                leftwheel.run(int(-turnSpeed * signnum(turnDegrees) + turnPidValue))
 
                 turnLastError = turnError
 
@@ -192,8 +194,8 @@ class Robot:
                 turn_on_setpoint = abs(hub.imu.heading()) >= self.turnTol
 
             if turnAtSetPoint:
-                leftwheel.stop()
-                rightwheel.stop()
+                leftwheel.brake()
+                rightwheel.brake()
                 turnAtSetPoint = True
 
             if not shellAtSetPoint:
@@ -201,12 +203,21 @@ class Robot:
 
                 shellPidValue = self.kp * shellError + self.ki * shellErrorSum + self.kd * (shellError - shellLastError)
 
-                shell.run(int(shellSpeed * singnum(shellDegrees) - shellPidValue))
+                shell.run(int(shellSpeed * signnum(shellDegrees) - shellPidValue))
 
                 shellLastError = shellError
 
                 shell_on_setpoint = True
                 shell_time_at_setpoint = 0
+
+                current_color = colorS.color()
+
+                if current_color == stop_color:
+                    wait(100)
+                    shell.stop()
+                    break
+                elif current_color == slow_color:
+                    speed = 400
 
                 if not shell_on_setpoint: shell_time_at_setpoint += 0.02
                 else: shell_time_at_setpoint = 0
@@ -219,13 +230,14 @@ class Robot:
                 wait(100)
 
             if shellAtSetPoint:
-                shell.stop()
+                shell.brake()
                 shellAtSetPoint = True
         
-        shell.stop()
-        leftwheel.stop()
-        rightwheel.stop()
+        shell.brake()
+        leftwheel.brake()
+        rightwheel.brake()
 
+    
     def stopColor(self, preset, degrees=365, speed=500):
         self.errorSum = 0
         self.lastError = 0
@@ -240,7 +252,7 @@ class Robot:
 
             pidValue = self.shellKp * error + self.shellKp * self.errorSum + self.shellKd * (error - self.lastError)
 
-            shell.run(int(speed * singnum(degrees) - pidValue))
+            shell.run(int(speed * signnum(degrees) - pidValue))
 
             self.lastError = error
 
@@ -251,7 +263,7 @@ class Robot:
 
             if current_color == stop_color:
                 wait(100)
-                shell.stop()
+                shell.brake()
                 break
             elif current_color == slow_color:
                 speed = 400
@@ -266,6 +278,30 @@ class Robot:
             wait(100)
 
         shell.stop()
+
+    def testcolor(self, preset, speed=500, blind_time=300):
+        stop_color, slow_color = COLOR_PRESETS[preset]
+        
+        # 1. Start the motor
+        shell.run(speed)
+
+        # 2. The Blind Drive: Wait for 'blind_time' milliseconds before checking colors.
+        # This forces the robot to drive off the starting position or over an early line.
+        if blind_time > 0:
+            wait(blind_time)
+
+        # 3. Now begin the high-precision scanning
+        while True:
+            current_color = colorS.color()
+
+            if current_color == stop_color:
+                shell.brake()
+                break 
+                
+            elif current_color == slow_color:
+                shell.run(400 if speed > 0 else -400)
+
+            wait(10)
 
     def shellButton(self, degrees=365):
         while True:
@@ -311,6 +347,51 @@ class Robot:
             else:
                 speed = speed
 
+    def moveWhileShell(self, shellDegrees, moveDistance, shellSpeed=500, moveSpeed=150):
+
+        hub.imu.reset_heading(0)
+        leftwheel.reset_angle(0)
+        rightwheel.reset_angle(0)
+        shell.reset_angle(0)
+        self.errorSum = 0
+        moveLastError = 0
+        moveErrorSum = 0
+        shellLastError = 0
+        shellErrorSum = 0
+
+        moveAtSetPoint = False
+        shellAtSetPoint = False
+        shell_on_setpoint = True
+        shell_time_at_setpoint = 0
+        wait(10)
+
+        while not moveAtSetPoint or not shellAtSetPoint:
+            if not moveAtSetPoint:
+                if abs(leftwheel.angle()) >= moveDistance / CIRCUMFERENCE * 360:
+                    moveAtSetPoint = True
+                    wheels.brake()
+                else:
+                    moveError = 0 - gyro.heading() 
+                    movePidValue = self.kp * moveError + self.ki * moveErrorSum + self.kd * (moveError - moveLastError)
+
+                    rightwheel.run(int(moveSpeed + movePidValue))
+                    leftwheel.run(int(moveSpeed - movePidValue))
+
+                    moveLastError = moveError
+                    moveErrorSum += moveError
+
+            if not shellAtSetPoint:
+                currentShellAngle = shell.angle() * SHELL_RATIO
+                
+                if abs(currentShellAngle) >= abs(shellDegrees):
+                    shellAtSetPoint = True
+                    shell.brake()
+                else:
+                    direction = 1 if shellDegrees > 0 else -1
+                    shell.run(shellSpeed * direction)
+
+            wait(10)
+
     def ziun(self, times_of_backshot, speed, behind_speed):
         for i in range(times_of_backshot):
             wheels.drive(-speed, 0)
@@ -324,3 +405,10 @@ class Robot:
             wheels.drive(-behind_speed, 0)
             wait(400)
             wheels.brake()
+
+    def sivuv(self, speed, time):
+        leftwheel.run(speed)
+        rightwheel.run(-speed)
+        wait(time)
+        leftwheel.brake()
+        rightwheel.brake()
