@@ -28,17 +28,17 @@ def run1():
 
     arm.run(-700)
     wait(400)
-    arm.stop()
+    arm.brake()
     wait(500)
 
-    rob.sivuv(1000, 350)
+    rob.sivuv(1000, 300)
     wait(10)
-    arm.run_time(1000, 1000)
+    arm.run_time(1000, 2000)
     wait(300)
     rob.pid(6, 100)
     wait(10)
-    # rob.turn(35, 125)
-    rob.sivuv(-300, 500)
+    rob.turn(45, 125)
+    # rob.sivuv(-300, 500)
     wait(300)
     rob.pid(10, -100)
     wait(10)
@@ -51,8 +51,9 @@ def run1():
     rob.turn(50, 125)
     wait(300)
     rob.pid(75, 525)
-    wait(300)
-    rob.shellButton(-180)
+    # wait(300)
+    # rob.shellButton(-180)
+
 
 ####
 
