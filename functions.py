@@ -393,6 +393,7 @@ class Robot:
             wait(10)
 
     def ziun(self, times_of_backshot, speed, behind_speed):
+        
         for i in range(times_of_backshot):
             wheels.drive(-speed, 0)
             wait(1500)
@@ -410,5 +411,91 @@ class Robot:
         leftwheel.run(speed)
         rightwheel.run(-speed)
         wait(time)
+        leftwheel.brake()
+        rightwheel.brake()
+
+    def test_pid(self, distance,speed):
+        hub.imu.reset_heading(0)
+        leftwheel.reset_angle(0)
+        rightwheel.reset_angle(0)
+        base_power = speed/10
+        self.errorSum = self.lastError = 0
+
+        target_angle = (distance / CIRCUMFERENCE) * 360
+        
+        timer = StopWatch()
+        last_time = timer.time()
+
+        while (abs(leftwheel.angle()) + abs(rightwheel.angle())) / 2 < target_angle:
+            current_time = timer.time()
+            dt = max((current_time - last_time) / 1000, 0.001)
+            last_time = current_time
+
+            error = -hub.imu.heading() # "0 -" is mathematically the same as just "-"
+            self.errorSum = max(-50, min(50, self.errorSum + (error * dt)))
+            derivative = (error - self.lastError) / dt
+            
+            pidValue = self.kp * error + self.ki * self.errorSum + self.kd * derivative
+
+            left_power = max(-100, min(100, base_power - pidValue))
+            right_power = max(-100, min(100, base_power + pidValue))
+
+            leftwheel.dc(left_power)
+            rightwheel.dc(right_power)
+
+            self.lastError = error
+            wait(10)
+
+        leftwheel.brake()
+        rightwheel.brake()
+
+    def accelDecel_test(self, distance, speed):
+        hub.imu.reset_heading(0)
+        leftwheel.reset_angle(0)
+        rightwheel.reset_angle(0)
+
+        self.lastError = 0
+
+        # Enforces your exact constraints: minimum speed is 100, target is max speed.
+        min_speed = 10 if speed >= 0 else -10
+        
+        target_angle = (distance / CIRCUMFERENCE) * 360
+        twenty_percent_dist = target_angle * 0.2
+
+        timer = StopWatch()
+        last_time = timer.time()
+
+        while ((abs(leftwheel.angle()) + abs(rightwheel.angle())) / 2) < target_angle:
+
+            current_time = timer.time()
+            dt = max((current_time - last_time) / 1000, 0.001)
+            last_time = current_time
+
+            current_dist = (abs(leftwheel.angle()) + abs(rightwheel.angle())) / 2
+            remaining_distance = target_angle - current_dist
+
+            error = 0 - hub.imu.heading()
+
+            if current_dist <= twenty_percent_dist and twenty_percent_dist > 0:
+                current_speed = min_speed + (speed - min_speed) * (current_dist / twenty_percent_dist)
+            elif remaining_distance <= twenty_percent_dist and twenty_percent_dist > 0:
+                current_speed = min_speed + (speed - min_speed) * (remaining_distance / twenty_percent_dist)
+            else:
+                current_speed = speed
+
+            derivative = (error - self.lastError) / dt
+            pidValue = self.kp * error + self.kd * derivative
+
+            base_power = current_speed / 10
+
+            left_power = max(-100, min(100, base_power - pidValue))
+            right_power = max(-100, min(100, base_power + pidValue))
+
+            leftwheel.dc(left_power)
+            rightwheel.dc(right_power)
+
+            self.lastError = error
+            wait(10)
+
         leftwheel.brake()
         rightwheel.brake()
