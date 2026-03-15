@@ -450,46 +450,47 @@ class Robot:
         rightwheel.brake()
 
     def accelDecel_test(self, distance, speed):
+
         hub.imu.reset_heading(0)
         leftwheel.reset_angle(0)
         rightwheel.reset_angle(0)
 
+        self.errorSum = 0 
         self.lastError = 0
 
-        # Enforces your exact constraints: minimum speed is 100, target is max speed.
-        min_speed = 10 if speed >= 0 else -10
+        min_power = 10 if speed >= 0 else -10
         
         target_angle = (distance / CIRCUMFERENCE) * 360
-        twenty_percent_dist = target_angle * 0.2
+        twenty_percent_angle = target_angle * 0.2
 
         timer = StopWatch()
         last_time = timer.time()
 
-        while ((abs(leftwheel.angle()) + abs(rightwheel.angle())) / 2) < target_angle:
+        while (abs(leftwheel.angle) + abs(rightwheel.angle) / 2) >= target_angle: 
+
+            remaining_angle = target_angle - (abs(leftwheel.angle) + abs(rightwheel.angle) / 2)
+
+            if (abs(leftwheel.angle) + abs(rightwheel.angle) / 2) <= twenty_percent_angle and twenty_percent_angle > 0:
+                current_base = min_power + (speed - min_power) * ((abs(leftwheel.angle) + abs(rightwheel.angle) / 2) / twenty_percent_angle)
+            
+            elif remaining_angle <= twenty_percent_angle and twenty_percent_angle > 0:
+                current_base = min_power + (speed - min_power) * (remaining_angle / twenty_percent_angle)
+            
+            else:
+                current_base = speed
 
             current_time = timer.time()
             dt = max((current_time - last_time) / 1000, 0.001)
             last_time = current_time
 
-            current_dist = (abs(leftwheel.angle()) + abs(rightwheel.angle())) / 2
-            remaining_distance = target_angle - current_dist
-
-            error = 0 - hub.imu.heading()
-
-            if current_dist <= twenty_percent_dist and twenty_percent_dist > 0:
-                current_speed = min_speed + (speed - min_speed) * (current_dist / twenty_percent_dist)
-            elif remaining_distance <= twenty_percent_dist and twenty_percent_dist > 0:
-                current_speed = min_speed + (speed - min_speed) * (remaining_distance / twenty_percent_dist)
-            else:
-                current_speed = speed
-
+            error = -hub.imu.heading()
+            self.errorSum = max(-50, min(50, self.errorSum + (error * dt)))
             derivative = (error - self.lastError) / dt
-            pidValue = self.kp * error + self.kd * derivative
+            
+            pidValue = self.kp * error + self.ki * self.errorSum + self.kd * derivative
 
-            base_power = current_speed / 10
-
-            left_power = max(-100, min(100, base_power - pidValue))
-            right_power = max(-100, min(100, base_power + pidValue))
+            left_power = max(-100, min(100, current_base - pidValue))
+            right_power = max(-100, min(100, current_base + pidValue))
 
             leftwheel.dc(left_power)
             rightwheel.dc(right_power)
