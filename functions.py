@@ -33,20 +33,27 @@ class Robot:
         leftwheel.reset_angle(0)
         rightwheel.reset_angle(0)
 
+        target_angle = (distance / CIRCUMFERENCE) * 360
+
         self.errorSum = 0
         self.lastError = 0
 
-        while abs(leftwheel.angle()) < distance / CIRCUMFERENCE * 360:
-            error = 0 - hub.imu.heading()
+        while (abs(leftwheel.angle()) + abs(rightwheel.angle())) / 2 < target_angle:
 
-            pidValue = self.kp * error + self.ki * self.errorSum + self.kd * (error - self.lastError)
+            error = -hub.imu.heading()
 
-            rightwheel.run(int(speed + pidValue))
-            leftwheel.run(int(speed - pidValue))
+            # dt removed: purely summing the raw error
+            self.errorSum = max(-50, min(50, self.errorSum + error))
+            
+            # dt removed: purely calculating the difference between loops
+            derivative = error - self.lastError
+            
+            pidValue = (self.kp * error) + (self.ki * self.errorSum) + (self.kd * derivative)
+
+            leftwheel.dc(max(-100, min(100, speed - pidValue)))
+            rightwheel.dc(max(-100, min(100, speed + pidValue)))
 
             self.lastError = error
-            self.errorSum += error
-
             wait(10)
 
         leftwheel.brake()
@@ -93,37 +100,47 @@ class Robot:
         rightwheel.brake()
 
     def turn(self, degrees, speed):
-        hub.imu.reset_heading(-degrees)
+        hub.imu.reset_heading(0)
         leftwheel.reset_angle(0)
         rightwheel.reset_angle(0)
 
         self.errorSum = 0
         self.lastError = 0
 
-        on_setpoint = True
         time_at_setpoint = 0
         wait(100)
 
         while time_at_setpoint < self.turn_wait_time:
 
-            error = hub.imu.heading()
+            current_heading = hub.imu.heading()
+            error = degrees - current_heading
+            
+            if abs(error) < 15:
+                self.errorSum = max(-50, min(50, self.errorSum + error))
+            else:
+                self.errorSum = 0 
 
             pidValue = self.turnKp * error + self.turnKi * self.errorSum + self.turnKd * (error - self.lastError)
 
-            rightwheel.run(int(speed * signnum(degrees) + pidValue))
-            leftwheel.run(int(-speed * signnum(degrees) - pidValue))
+            left_power = int(max(-speed, min(speed, -pidValue)))
+            right_power = int(max(-speed, min(speed, pidValue)))
+
+            # print("Error:", error, "| PID:", pidValue, "| L_PWR:", left_power, "| R_PWR:", right_power)
+
+            leftwheel.dc(left_power)
+            rightwheel.dc(right_power)
 
             self.lastError = error
-            self.errorSum += error
 
-            if not on_setpoint: time_at_setpoint += 0.02
-            else: time_at_setpoint = 0
-
-            on_setpoint = abs(hub.imu.heading()) >= self.turnTol
+            if abs(error) <= self.turnTol: 
+                time_at_setpoint += 0.02
+            else: 
+                time_at_setpoint = 0
+            
+            wait(20)
 
         leftwheel.brake()
         rightwheel.brake()
-
     
     def shellTurn(self, degrees, speed=800):
         
@@ -391,112 +408,3 @@ class Robot:
                     shell.run(shellSpeed * direction)
 
             wait(10)
-
-    def ziun(self, times_of_backshot, speed, behind_speed):
-        
-        for i in range(times_of_backshot):
-            wheels.drive(-speed, 0)
-            wait(1500)
-            wheels.brake()
-            wait(300)
-            wheels.drive(behind_speed, 0)
-            wait(400)
-            wheels.brake()
-            wait(300)
-            wheels.drive(-behind_speed, 0)
-            wait(400)
-            wheels.brake()
-
-    def sivuv(self, speed, time):
-        leftwheel.run(speed)
-        rightwheel.run(-speed)
-        wait(time)
-        leftwheel.brake()
-        rightwheel.brake()
-
-    def test_pid(self, distance,speed):
-        hub.imu.reset_heading(0)
-        leftwheel.reset_angle(0)
-        rightwheel.reset_angle(0)
-        base_power = speed/10
-        self.errorSum = self.lastError = 0
-
-        target_angle = (distance / CIRCUMFERENCE) * 360
-        
-        timer = StopWatch()
-        last_time = timer.time()
-
-        while (abs(leftwheel.angle()) + abs(rightwheel.angle())) / 2 < target_angle:
-            current_time = timer.time()
-            dt = max((current_time - last_time) / 1000, 0.001)
-            last_time = current_time
-
-            error = -hub.imu.heading() # "0 -" is mathematically the same as just "-"
-            self.errorSum = max(-50, min(50, self.errorSum + (error * dt)))
-            derivative = (error - self.lastError) / dt
-            
-            pidValue = self.kp * error + self.ki * self.errorSum + self.kd * derivative
-
-            left_power = max(-100, min(100, base_power - pidValue))
-            right_power = max(-100, min(100, base_power + pidValue))
-
-            leftwheel.dc(left_power)
-            rightwheel.dc(right_power)
-
-            self.lastError = error
-            wait(10)
-
-        leftwheel.brake()
-        rightwheel.brake()
-
-    def accelDecel_test(self, distance, speed):
-
-        hub.imu.reset_heading(0)
-        leftwheel.reset_angle(0)
-        rightwheel.reset_angle(0)
-
-        self.errorSum = 0 
-        self.lastError = 0
-
-        min_power = 10 if speed >= 0 else -10
-        
-        target_angle = (distance / CIRCUMFERENCE) * 360
-        twenty_percent_angle = target_angle * 0.2
-
-        timer = StopWatch()
-        last_time = timer.time()
-
-        while (abs(leftwheel.angle) + abs(rightwheel.angle) / 2) >= target_angle: 
-
-            remaining_angle = target_angle - (abs(leftwheel.angle) + abs(rightwheel.angle) / 2)
-
-            if (abs(leftwheel.angle) + abs(rightwheel.angle) / 2) <= twenty_percent_angle and twenty_percent_angle > 0:
-                current_base = min_power + (speed - min_power) * ((abs(leftwheel.angle) + abs(rightwheel.angle) / 2) / twenty_percent_angle)
-            
-            elif remaining_angle <= twenty_percent_angle and twenty_percent_angle > 0:
-                current_base = min_power + (speed - min_power) * (remaining_angle / twenty_percent_angle)
-            
-            else:
-                current_base = speed
-
-            current_time = timer.time()
-            dt = max((current_time - last_time) / 1000, 0.001)
-            last_time = current_time
-
-            error = -hub.imu.heading()
-            self.errorSum = max(-50, min(50, self.errorSum + (error * dt)))
-            derivative = (error - self.lastError) / dt
-            
-            pidValue = self.kp * error + self.ki * self.errorSum + self.kd * derivative
-
-            left_power = max(-100, min(100, current_base - pidValue))
-            right_power = max(-100, min(100, current_base + pidValue))
-
-            leftwheel.dc(left_power)
-            rightwheel.dc(right_power)
-
-            self.lastError = error
-            wait(10)
-
-        leftwheel.brake()
-        rightwheel.brake()
