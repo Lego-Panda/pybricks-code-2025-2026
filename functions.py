@@ -125,7 +125,7 @@ class Robot:
             left_power = int(max(-speed, min(speed, -pidValue)))
             right_power = int(max(-speed, min(speed, pidValue)))
 
-            # print("Error:", error, "| PID:", pidValue, "| L_PWR:", left_power, "| R_PWR:", right_power)
+            print("Error:", error, "| PID:", pidValue, "| L_PWR:", left_power, "| R_PWR:", right_power)
 
             leftwheel.dc(left_power)
             rightwheel.dc(right_power)
@@ -142,139 +142,153 @@ class Robot:
         leftwheel.brake()
         rightwheel.brake()
     
-    def shellTurn(self, degrees, speed=800):
+    def shellTurn(self, degrees, speed=100):
         
         self.errorSum = 0
         self.lastError = 0
-
+        
         shell.reset_angle(0)
+        
+        time_at_setpoint = 0
+        wait(100) # Let the physical mechanism settle before moving
 
-        while abs(shell.angle() * SHELL_RATIO) <= abs(degrees):
+        while True:
 
-            error = shell.angle() * SHELL_RATIO
+            current_angle = shell.angle() * SHELL_RATIO
+            error = degrees - current_angle
+            
+            if abs(error) < 15:
+                self.errorSum = max(-50, min(50, self.errorSum + error))
+            else:
+                self.errorSum = 0 
 
             pidValue = self.shellKp * error + self.shellKi * self.errorSum + self.shellKd * (error - self.lastError)
 
-            shell.run(int(speed * signnum(degrees) - pidValue))
+            shell_power = int(max(-speed, min(speed, pidValue)))
+
+            print("Error:", error, "| Pwr:", shell_power, "| Timer:", time_at_setpoint)
+
+            shell.dc(shell_power)
 
             self.lastError = error
-            self.errorSum += error
 
-            on_setpoint = True
-            time_at_setpoint = 0
+            if abs(error) <= self.shellTol: 
+                time_at_setpoint += 20
+            else: 
+                time_at_setpoint = 0
+            
+            if time_at_setpoint >= 100:
+                break
+            
+            wait(20)
 
-            if not on_setpoint: time_at_setpoint += 0.02
-            else: time_at_setpoint = 0
+        shell.brake()
 
-            on_setpoint = abs(shell.angle() * SHELL_RATIO) >= self.shellTol
-
-            wait(100)
-
-        shell.stop()
-
-    def turnWhileShell(self, preset, shellDegrees, turnDegrees, shellSpeed=1000, turnSpeed=125):
-        hub.imu.reset_heading(-turnDegrees)
-        stop_color, slow_color = COLOR_PRESETS[preset]
+    def turnWhileShell(self, shellDegrees, turnDegrees, shellSpeed=50, turnSpeed=50):
+        hub.imu.reset_heading(0)
         shell.reset_angle(0)
+
         self.errorSum = 0
         turnLastError = 0
         turnErrorSum = 0
         shellLastError = 0
         shellErrorSum = 0
 
-        turnAtSetPoint = False
-        shellAtSetPoint = False
-        turn_on_setpoint = True
         turn_time_at_setpoint = 0
-        shell_on_setpoint = True
         shell_time_at_setpoint = 0
         wait(100)
 
-        while not turnAtSetPoint and not shellAtSetPoint:
+        # THE FIX: The loop continues until BOTH timers reach 100ms at the exact same time.
+        while turn_time_at_setpoint < 100 or shell_time_at_setpoint < 100:
 
-            if not turnAtSetPoint:
-                turnError = hub.imu.heading()
+            # ==========================================
+            #              Robot Base PID
+            # ==========================================
+            turn_error = turnDegrees - hub.imu.heading()
+            
+            if abs(turn_error) < 15:
+                turnErrorSum = max(-50, min(50, turnErrorSum + turn_error))
+            else:
+                turnErrorSum = 0 
 
-                turnPidValue = self.turnKp * turnError + self.turnKi * turnErrorSum + self.turnKd * (turnError - turnLastError)
+            turnPid = self.turnKp * turn_error + self.turnKi * turnErrorSum + self.turnKd * (turn_error - turnLastError)
 
-                rightwheel.run(int(turnSpeed * signnum(turnDegrees) - turnPidValue))
-                leftwheel.run(int(-turnSpeed * signnum(turnDegrees) + turnPidValue))
+            left_power = int(max(-turnSpeed, min(turnSpeed, -turnPid)))
+            right_power = int(max(-turnSpeed, min(turnSpeed, turnPid)))
 
-                turnLastError = turnError
+            leftwheel.dc(left_power)
+            rightwheel.dc(right_power)
 
-                if not turn_on_setpoint: turn_time_at_setpoint += 0.02
-                else: turn_time_at_setpoint = 0
-                
-                if not turn_on_setpoint:
-                    turnAtSetPoint = True
+            turnLastError = turn_error
 
-                turn_on_setpoint = abs(hub.imu.heading()) >= self.turnTol
+            if abs(turn_error) <= self.turnTol: 
+                turn_time_at_setpoint += 20
+            else: 
+                turn_time_at_setpoint = 0
 
-            if turnAtSetPoint:
-                leftwheel.brake()
-                rightwheel.brake()
-                turnAtSetPoint = True
+            # ==========================================
+            #                 Shell PID
+            # ==========================================
+            shell_error = shellDegrees - (shell.angle() * SHELL_RATIO)
+            
+            if abs(shell_error) < 15:
+                shellErrorSum = max(-50, min(50, shellErrorSum + shell_error))
+            else:
+                shellErrorSum = 0 
 
-            if not shellAtSetPoint:
-                shellError = shell.angle() * SHELL_RATIO
+            shellPid = self.shellKp * shell_error + self.shellKi * shellErrorSum + self.shellKd * (shell_error - shellLastError)
 
-                shellPidValue = self.kp * shellError + self.ki * shellErrorSum + self.kd * (shellError - shellLastError)
+            shell_power = int(max(-shellSpeed, min(shellSpeed, shellPid)))
 
-                shell.run(int(shellSpeed * signnum(shellDegrees) - shellPidValue))
+            shell.dc(shell_power)
 
-                shellLastError = shellError
+            shellLastError = shell_error
 
-                shell_on_setpoint = True
+            if abs(shell_error) <= self.shellTol: 
+                shell_time_at_setpoint += 20
+            else: 
                 shell_time_at_setpoint = 0
+            
+            print("TurnErr:", turn_error, "TurnPwr:", left_power, "|| ShellErr:", shell_error, "ShellPwr:", shell_power)
 
-                current_color = colorS.color()
-
-                if current_color == stop_color:
-                    wait(100)
-                    shell.stop()
-                    break
-                elif current_color == slow_color:
-                    speed = 400
-
-                if not shell_on_setpoint: shell_time_at_setpoint += 0.02
-                else: shell_time_at_setpoint = 0
-
-                if not shell_on_setpoint:
-                    shellAtSetPoint = True
-
-                shell_on_setpoint = abs(hub.imu.heading()) >= self.turnTol
-
-                wait(100)
-
-            if shellAtSetPoint:
-                shell.brake()
-                shellAtSetPoint = True
+            # A single wait controls the timing for both
+            wait(20)
         
+        # Emergency brakes when both are perfectly stable
         shell.brake()
         leftwheel.brake()
         rightwheel.brake()
 
     
-    def stopColor(self, preset, degrees=365, speed=500):
-        self.errorSum = 0
-        self.lastError = 0
-
+    def stopColor(self, preset, degrees, speed=100):
+        
         stop_color, slow_color = COLOR_PRESETS[preset]
 
+        self.errorSum = 0
+        self.lastError = 0
+        
         shell.reset_angle(0)
+        
+        time_at_setpoint = 0
+        wait(100) 
 
-        while abs(shell.angle() * SHELL_RATIO) <= abs(degrees):
+        while True:
 
-            error = shell.angle() * SHELL_RATIO
+            current_angle = shell.angle() * SHELL_RATIO
+            error = degrees - current_angle
+            
+            if abs(error) < 15:
+                self.errorSum = max(-50, min(50, self.errorSum + error))
+            else:
+                self.errorSum = 0 
 
-            pidValue = self.shellKp * error + self.shellKp * self.errorSum + self.shellKd * (error - self.lastError)
+            pidValue = self.shellKp * error + self.shellKi * self.errorSum + self.shellKd * (error - self.lastError)
 
-            shell.run(int(speed * signnum(degrees) - pidValue))
+            shell_power = int(max(-speed, min(speed, pidValue)))
 
-            self.lastError = error
+            print("Error:", error, "| Pwr:", shell_power, "| Timer:", time_at_setpoint)
 
-            on_setpoint = True
-            time_at_setpoint = 0
+            shell.dc(shell_power)
 
             current_color = colorS.color()
 
@@ -283,42 +297,21 @@ class Robot:
                 shell.brake()
                 break
             elif current_color == slow_color:
-                speed = 400
+                speed = 40
 
-            if not on_setpoint:
-                time_at_setpoint += 0.02
-            else:
+            self.lastError = error
+
+            if abs(error) <= self.shellTol: 
+                time_at_setpoint += 20 
+            else: 
                 time_at_setpoint = 0
+            
+            if time_at_setpoint >= 100:
+                break
+            
+            wait(20)
 
-            on_setpoint = (shell.angle() * SHELL_RATIO) >= self.shellTol 
-
-            wait(100)
-
-        shell.stop()
-
-    def testcolor(self, preset, speed=500, blind_time=300):
-        stop_color, slow_color = COLOR_PRESETS[preset]
-        
-        # 1. Start the motor
-        shell.run(speed)
-
-        # 2. The Blind Drive: Wait for 'blind_time' milliseconds before checking colors.
-        # This forces the robot to drive off the starting position or over an early line.
-        if blind_time > 0:
-            wait(blind_time)
-
-        # 3. Now begin the high-precision scanning
-        while True:
-            current_color = colorS.color()
-
-            if current_color == stop_color:
-                shell.brake()
-                break 
-                
-            elif current_color == slow_color:
-                shell.run(400 if speed > 0 else -400)
-
-            wait(10)
+        shell.brake()
 
     def shellButton(self, degrees=365):
         while True:
@@ -344,25 +337,6 @@ class Robot:
         percent = max(0, min(100, percent))  # clamp 0–100
 
         print(percent)
-
-    def resetShell(self, preset, speed):
-        stop_color, slow_color = COLOR_PRESETS[preset]
-
-        shell.run(speed)
-
-        while True:
-            current_color = colorS.color()
-
-            if current_color == stop_color:
-                wait(150)
-                if colorS.color() == stop_color:
-                    shell.stop()
-                    break
-
-            elif current_color == slow_color:
-                speed = 400
-            else:
-                speed = speed
 
     def moveWhileShell(self, shellDegrees, moveDistance, shellSpeed=500, moveSpeed=150):
 
@@ -408,3 +382,24 @@ class Robot:
                     shell.run(shellSpeed * direction)
 
             wait(10)
+
+    def arm(self, target_angle, motor_speed=1000):
+        arm.reset_angle(0)
+        cur_motor_angle = arm.angle()
+
+        # target_angle = max(-180, min(target_angle, 180))
+
+        if target_angle > cur_motor_angle: speed = motor_speed
+        else: speed = -motor_speed
+
+        while not abs(cur_motor_angle) >= abs(target_angle):
+            cur_motor_angle = arm.angle()
+            error = abs(target_angle) - abs(cur_motor_angle)
+
+            if (error) < 1:
+                arm.brake()
+                break
+            
+            arm.dc(speed)
+            wait(10)
+        arm.brake()
