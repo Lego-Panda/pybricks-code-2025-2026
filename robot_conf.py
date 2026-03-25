@@ -13,7 +13,6 @@ COLOR_PRESETS = {
     "stopGreen":  (Color.GREEN, Color.RED)
 }
 
-
 leftwheel = Motor(Port.A, Direction.COUNTERCLOCKWISE)
 rightwheel = Motor(Port.B, Direction.CLOCKWISE)
 
