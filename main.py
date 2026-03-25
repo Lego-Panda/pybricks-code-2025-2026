@@ -27,9 +27,8 @@ if selected == "4":
 if selected == "5":
     run5()
 if selected == "6":
-    run6()
+    pass
 if selected == "7":
     run7()
 if selected == "8":
-    run8()
-
+    pass
