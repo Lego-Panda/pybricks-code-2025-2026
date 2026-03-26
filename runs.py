@@ -164,29 +164,33 @@ def run4():
 ###
 
 def run5():
-    rob = Robot(kp=2.5, ki=0, kd=16, turnKp=8, turnKi=0, turnKd=20, shellKp=12, shellKi=0, shellKd=0, shellTol=5, turnTol=10, turn_wait_time=1)
+    rob = Robot(kp=2.5, ki=0, kd=16, turnKp=8, turnKi=0, turnKd=20, shellKp=12, shellKi=0, shellKd=0, shellTol=5, turnTol=5, turn_wait_time=1)
 
     hub.speaker.volume(20)
     hub.speaker.beep(600, 80)
     wait(100)
 
-    rob.pid(75,-50)
+    rob.pid(30, -50)
     wait(10)
-    rob.shellTurn(-180)
+    rob.shellTurn(90)
     wait(10)
-    rob.pid(20,-50)
+    rob.pid(70,-50)
     wait(10)
-    rob.pid(1, 50)
-    wait(300)
-    rob.turn(92, 50)
+    rob.pid(2,25) #המהירות המינמלית של הרובוט
+    wait(10) 
+    rob.turn(90,40)
     wait(10)
-    rob.arm(1500, -100)
-    wait(300)
-    rob.pid(8, 10)
+    arm.run_time(-1000,1000)
     wait(10)
-    rob.arm(1500, 100)
-    wait(300)
-
+    rob.pid(17,30)
+    wait(10)
+    arm.run_time(1000,1000)
+    wait(10)
+    rob.pid(17,-30)
+    wait(10)
+    rob.turn(-90)
+    wait(10)
+    rob.pid(100,70)
 
     
 ###
@@ -261,48 +265,42 @@ def run7():
 ###
 
 def run8():
-    rob = Robot(kp=2, ki=0, kd=10, turnKp=1.1, turnKi=0, turnKd=0,shellKp=2, shellKi=0, shellKd=10, shellTol=0, turnTol=10, turn_wait_time=1)
+    rob = Robot(kp=1, ki=0, kd=4, turnKp=4.5, turnKi=0, turnKd=8, shellKp=0, shellKi=0, shellKd=0, shellTol=0, turnTol=10, turn_wait_time=1)
 
-    rob.accelDecel(21, -525)
-    wait(300)
-    rob.turn(-90, 125)
-    wait(300)
-    rob.accelDecel(55, -525)
-    wait(300)
-    rob.turn(110, 150)
-    wait(300)
-    rob.pid(8, -100)
-    wait(300)
-    rob.turn(-20, 125)
-    wait(300)
-    arm.run_time(700, 1500)
-    wait(300)
-    rob.turn(15, 125)
-    wait(300)
-    rob.pid(5, -100)
-    wait(300)
-    rob.pid(10, 525)
-    wait(300)
-    rob.turn(-40, 125)
-    wait(300)
-    rob.accelDecel(80, -525)
+    hub.speaker.volume(20)
+    hub.speaker.beep(600, 80)  # Low C
+    wait(100)
+    hub.speaker.beep(800, 80)  # Mid E
+    wait(10)
+    hub.speaker.beep(1100, 120) # High G
+    wait(400)   
 
+    arm.run_time(-1000,1050)
+    wait(30)
+    rob.pid(9,-50)
+    wait(30) 
+    rob.turn(-70,40)
+    wait(30)
+    rob.pid(22,-50)
+    wait(30)
+    rob.turn(-28,40)
+    wait(30)
+    rob.pid(28,-60)
+    wait(30)
+    rob.turn(100,35)
+
+
+    #rob.pid(20,50)
+    #wait(30)
+    #rob.turn(90,40)
+    #arm.run_time(1000,1000)
+    
 ###
 
 def test():
-    rob = Robot(kp=1, ki=0, kd=0.1, turnKp=6, turnKi=0, turnKd=15, shellKp=22, shellKi=0, shellKd=20, shellTol=2, turnTol=10, turn_wait_time=1)
+    rob = Robot(kp=1, ki=0, kd=0.1, turnKp=8, turnKi=0, turnKd=15, shellKp=22, shellKi=0, shellKd=20, shellTol=2, turnTol=10, turn_wait_time=1)
     # rob_t = Robot_test(kp=1, ki=0, kd=0.1, turnKp=1, turnKi=0, turnKd=0, shellKp=22, shellKi=0, shellKd=20, shellTol=2, turnTol=10, turn_wait_time=1)
-
-    # rob_t.shellTurn_t()
-    # rob.stopColor("stopYellow", 360)
-    # rob.turnWhileShell(-90, 90, 100, 50)
-    # rob.shellTurn(-90)
-    # rob.turn(90, 50)
-    shell.run(1000)
-    wait(100000)
-    # arm.run(1000)
-    # wait(10000)
-    # arm.stop()
+    rob.pid(100000,100)
 
 
 ###
@@ -318,7 +316,8 @@ def battery():
 
 ######
 
-# run1()
+
+#run1()
 
 # run2()
 
@@ -328,12 +327,12 @@ def battery():
 
 #run5()
 
-#run6()
+# run6()
 
 # run7()
 
-# run8()
+run8()
 
-# test()
+#test()
 
-battery()
+#battery()
