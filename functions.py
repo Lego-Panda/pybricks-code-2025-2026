@@ -7,9 +7,6 @@ from robot_conf import *
 
 hub = PrimeHub(Axis.Y, Axis.Z)
 
-def signnum(value):
-    return value / abs(value)
-
 class Robot:
     def __init__(self,kp=0, ki=0, kd=0,turnKp=0, turnKi=0, turnKd=0,shellKp=0,shellKi=0,shellKd=0, shellTol=0, turnTol=0, turn_wait_time=0):
         self.kp = kp
@@ -379,9 +376,11 @@ class Robot:
 
             wait(10)
 
-    def arm(self, time, motor_speed):
-        arm.reset_angle(0)
-        
+    def arm(self, duration, motor_speed):
+        timer = StopWatch()
         arm.dc(motor_speed)
-        wait(time)
+        
+        while timer.time() < duration:
+            wait(10)
+            
         arm.brake()
