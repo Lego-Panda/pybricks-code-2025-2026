@@ -20,7 +20,7 @@ _install git_
   winget install Git.Git
 ```
 
-clone the repository
+_clone the repository_
 
 ```bash
   git clone https://github.com/Lego-Panda/pybricks-code.git
@@ -28,19 +28,19 @@ clone the repository
 
 ### macOS
 
-install homebrew (if you dont have it)
+_install homebrew (if you dont have it)_
 
 ```bash
   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 ```
 
-install git
+_install git_
 
 ```bash
   brew install git
 ```
 
-clone the repository
+_clone the repository_
 
 ```bash
   git clone https://github.com/Lego-Panda/pybricks-code.git
@@ -50,13 +50,13 @@ clone the repository
 
 #### Arch Linux
 
-install git
+_install git_
 
 ```bash
   sudo pacman -S git
 ```
 
-clone the repository
+_clone the repository_
 
 ```bash
   git clone https://github.com/Lego-Panda/pybricks-code.git
@@ -64,13 +64,13 @@ clone the repository
 
 #### Fedora
 
-install git
+_install git_
 
 ```bash
   sudo dnf install git
 ```
 
-clone the repository
+_clone the repository_
 
 ```bash
   git clone https://github.com/Lego-Panda/pybricks-code.git
@@ -78,12 +78,12 @@ clone the repository
 ## Documentation
 
 ### Functions:
-- pid - Moving straight with PID 
-- turn - Turning with PID 
-- shellTurn - Turning the shell with PID (Just 1 motor)
-- shellWhileTurn - Turn the shell while the robot is also Turning
-- moveWhileShell - Move Straight while the shell is also turning.
+- *pid* - Moving straight with PID 
+- *turn* - Turning with PID 
+- *shellTurn* - Turning the shell with PID (Just 1 motor)
+- *shellWhileTurn* - Turn the shell while the robot is also Turning
+- *moveWhileShell* - Move Straight while the shell is also turning.
 
 
-![Logo](https://github.com/Lego-Panda/pybricks-code/blob/main/LegoPandaLogo.png?raw=true)
+![Logo](https://github.com/Lego-Panda/pybricks-code-2025-2026/blob/main/LegoPandaLogo.png?raw=true)
 
