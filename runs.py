@@ -265,7 +265,7 @@ def run7():
 ###
 
 def run8():
-    rob = Robot(kp=1, ki=0, kd=4, turnKp=4.5, turnKi=0, turnKd=8, shellKp=0, shellKi=0, shellKd=0, shellTol=0, turnTol=10, turn_wait_time=1)
+    rob = Robot(kp=1, ki=0, kd=0.1, turnKp=9, turnKi=0, turnKd=18, shellKp=0, shellKi=0, shellKd=0, shellTol=0, turnTol=10, turn_wait_time=1)
 
     hub.speaker.volume(20)
     hub.speaker.beep(600, 80)  # Low C
@@ -275,32 +275,68 @@ def run8():
     hub.speaker.beep(1100, 120) # High G
     wait(400)   
 
-    arm.run_time(-1000,1050)
-    wait(30)
-    rob.pid(9,-50)
-    wait(30) 
-    rob.turn(-70,40)
-    wait(30)
-    rob.pid(22,-50)
-    wait(30)
-    rob.turn(-28,40)
-    wait(30)
-    rob.pid(28,-60)
-    wait(30)
-    rob.turn(100,35)
+    # arm.run_time(-1000, 2000)
+    # wait(30)
+    # rob.pid(12,-50)
+    # wait(30)
+    # rob.turn(-85,40)
+    # wait(30)
+    # rob.pid(67,-50)
+    # # wait(30)
+    # # rob.turn(-31, 40)
+    # # wait(30)
+    # # rob.pid(50, -60)
+    # wait(30)
+    # rob.turn(120,40)
+    # wait(30)
+    # # rob.turn(-30,40)
+    # # wait(30)
+    # rob.turn(-5,40)
+    # wait(30)
+    # rob.pid(5, -50)
+    # wait(30)
+    # arm.run_time(1000, 2000)
+    # # wait(30)
+    # # rob.turn(30, 50)
+    # wait(30)
+    # rob.pid(10, -50)
+    # wait(30)
+    # rob.pid(10, 50)
 
-
-    #rob.pid(20,50)
-    #wait(30)
-    #rob.turn(90,40)
+    # rob.turn(90, 50)
     #arm.run_time(1000,1000)
     
+    rob.pid(20, -50)
+    wait(30)
+    rob.turn(-30, 30)
+    wait(30)
+    rob.pid(5, -50)
+    wait(30)
+    rob.turn(-20, 30)
+    wait(30)
+    rob.pid(15, -50)
+    wait(30)
+    rob.pid(15, 50)
+    wait(30)
+    rob.turn(-48, 40)
+    wait(10)
+    rob.pid(65, -50)
+    wait(10)
+    arm.run_time(-1000, 2000)
+    wait(30)
+    rob.turn(130, 50)
+    wait(10)
+    rob.pid(15, -50)
+    
+
 ###
 
 def test():
     rob = Robot(kp=1, ki=0, kd=0.1, turnKp=8, turnKi=0, turnKd=15, shellKp=22, shellKi=0, shellKd=20, shellTol=2, turnTol=10, turn_wait_time=1)
     # rob_t = Robot_test(kp=1, ki=0, kd=0.1, turnKp=1, turnKi=0, turnKd=0, shellKp=22, shellKi=0, shellKd=20, shellTol=2, turnTol=10, turn_wait_time=1)
-    rob.pid(100000,100)
+    # rob.pid(100000,100)
+    wheels.drive(1000, 0)
+    wait(1000000)
 
 
 ###
@@ -325,14 +361,14 @@ def battery():
 
 # run4()
 
-#run5()
+# run5()
 
 # run6()
 
 # run7()
 
-run8()
+# run8()
 
-#test()
+# test()
 
-#battery()
+battery()
