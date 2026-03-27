@@ -3,7 +3,7 @@
 
 This is our 2025-2026 Unearthed Challenge Pybricks Code.
 
-Use this code either for inspiration or if you understand every line!!
+Use this code either for inspiration or if you understand every line ;)
 
 ---
 
