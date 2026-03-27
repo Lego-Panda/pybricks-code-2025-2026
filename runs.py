@@ -25,7 +25,7 @@ def run1():
     arm.run(-700)
     wait(400)
     arm.brake()
-    wait(500)
+    wait(1000)
 
     # rob.pid(2, -30)
     # wait(10)
@@ -130,7 +130,7 @@ def run4():
     wait(100)
     rightwheel.dc(30)
     leftwheel.dc(30)
-    wait(750)
+    wait(650)
     wheels.brake()
     wait(100)
     rob.shellTurn(20)
@@ -164,34 +164,67 @@ def run4():
 ###
 
 def run5():
-    rob = Robot(kp=2.5, ki=0, kd=16, turnKp=8, turnKi=0, turnKd=20, shellKp=12, shellKi=0, shellKd=0, shellTol=5, turnTol=5, turn_wait_time=1)
+    rob = Robot(kp=2.5, ki=0, kd=16, turnKp=8, turnKi=0, turnKd=20, shellKp=30, shellKi=0, shellKd=20, shellTol=5, turnTol=5, turn_wait_time=1)
 
     hub.speaker.volume(20)
     hub.speaker.beep(600, 80)
-    wait(100)
+    wait(500)
 
+    # Straight before Spinning shell
     rob.pid(30, -50)
     wait(10)
+
+    # Spinning shell
     rob.shellTurn(90)
     wait(10)
-    rob.pid(70,-50)
+
+    # Going to align with the kir
+    rob.pid(60, -50)
     wait(10)
-    rob.pid(2,25) #המהירות המינמלית של הרובוט
+
+    rob.moveTime(1000, -30)
+    wait(300)
+
+    # Away from the kir
+    rob.pid(2, 25)
     wait(10) 
-    rob.turn(90,40)
+
+    # Look to the mission
+    rob.turn(90, 40)
     wait(10)
+
+    # Put the arm down
     arm.run_time(-1000,1000)
     wait(10)
-    rob.pid(17,30)
+    
+    # drive straight for seconds, because using normal pid will just get it stuck.
+    wheels.drive(50, 0) 
+    wait(2000)
+    wheels.brake()
+
+    # Arm up
     wait(10)
     arm.run_time(1000,1000)
     wait(10)
-    rob.pid(17,-30)
-    wait(10)
-    rob.turn(-90)
-    wait(10)
-    rob.pid(100,70)
 
+    # Arm down
+    arm.run_time(-1000,1000)
+    wait(10)
+
+    # go back
+    # rob.pid(8, -30)
+    # wait(10)
+    # if leftwheel.stalled():
+    #     wheels.brake()
+    rob.moveTime(1000, -30)
+    wait(10)
+
+    # look to the base
+    rob.turn(-90, 50)
+    wait(10)
+
+    # drive to base
+    rob.pid(100, 70)
     
 ###
 
@@ -238,29 +271,25 @@ def run6():
 ###
 
 def run7():
-    rob = Robot(kp=0.08, ki=0, kd=0.1, shellKp=2, shellKi=0, shellKd=10, shellTol=0, tol=10, wait_time=1)
+    rob = Robot(kp=2.5, ki=0, kd=16)
 
     hub.speaker.volume(20)
     hub.speaker.beep(600, 80)  # Low C
     wait(100)
-    hub.speaker.beep(800, 80)  # Mid E
-    wait(10)
-    hub.speaker.beep(1100, 120) # High G
-    wait(400)
 
-    rob.pid(50,-500)
+    rob.pid(60,-70)
     wait(400)
-    rob.pid(3,500)
+    rob.pid(3,50)
     wait(400)
     arm.run_time(660, 1000)
     wait(400)
-    rob.pid(4,650)
+    rob.pid(4,50)
     wait(200)
-    rob.pid(5, -650)
-    wait(200)
-    # rob.pid(15,525)
+    # rob.pid(5, -50)
     # wait(200)
-    rob.pid(45, 525)
+    rob.pid(5, -100)
+    wait(10)
+    rob.pid(45, 100)
 
 ###
 
@@ -353,7 +382,7 @@ def battery():
 ######
 
 
-#run1()
+# run1()
 
 # run2()
 

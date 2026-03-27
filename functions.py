@@ -52,6 +52,19 @@ class Robot:
         leftwheel.brake()
         rightwheel.brake()
 
+    def moveTime(self, duration, speed):
+        timer = StopWatch()
+        
+        while True:
+            if timer.time() < duration:
+                leftwheel.dc(speed)
+                rightwheel.dc(speed)
+            else:
+                leftwheel.brake()
+                rightwheel.brake()
+                break
+            wait(10)
+
     def accelDecel(self, distance, speed):
         hub.imu.reset_heading(0)
         leftwheel.reset_angle(0)
@@ -177,6 +190,17 @@ class Robot:
 
         shell.brake()
 
+    def shellTurnTime(self, duration, speed):
+        timer = StopWatch()
+        
+        while True:
+            if timer.time() < duration:
+                shell.dc(speed)
+            else:
+                shell.brake()
+                break
+            wait(10)
+
     def turnWhileShell(self, shellDegrees, turnDegrees, shellSpeed=50, turnSpeed=50):
         hub.imu.reset_heading(0)
         shell.reset_angle(0)
@@ -244,10 +268,8 @@ class Robot:
             
             print("TurnErr:", turn_error, "TurnPwr:", left_power, "|| ShellErr:", shell_error, "ShellPwr:", shell_power)
 
-            # A single wait controls the timing for both
             wait(20)
         
-        # Emergency brakes when both are perfectly stable
         shell.brake()
         leftwheel.brake()
         rightwheel.brake()
@@ -311,13 +333,6 @@ class Robot:
             pressed = hub.buttons.pressed()
             if Button.RIGHT in pressed or Button.LEFT in pressed:
                 self.stopColor("stopYellow", degrees)
-                break
-            
-
-    def shellPitch(self):
-        while True:
-            if hub.imu.tilt()[0] < 90:
-                Robot.stopColor(self, "stopYellow")
                 break
 
     def battery_percent(self):
