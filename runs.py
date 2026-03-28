@@ -164,14 +164,15 @@ def run4():
 ###
 
 def run5():
-    rob = Robot(kp=2.5, ki=0, kd=16, turnKp=8, turnKi=0, turnKd=20, shellKp=30, shellKi=0, shellKd=20, shellTol=5, turnTol=5, turn_wait_time=1)
+    rob = Robot(kp=2.5, ki=0, kd=0, turnKp=8, turnKi=0, turnKd=20, shellKp=30, shellKi=0, shellKd=20, shellTol=5, turnTol=5, turn_wait_time=1)
 
     hub.speaker.volume(20)
     hub.speaker.beep(600, 80)
     wait(500)
 
     # Straight before Spinning shell
-    rob.pid(30, -50)
+    # rob.pid(30, -50)
+    rob.accelDecel(30, -60)
     wait(10)
 
     # Spinning shell
@@ -179,14 +180,15 @@ def run5():
     wait(10)
 
     # Going to align with the kir
-    rob.pid(60, -50)
+    # rob.pid(60, -60)
+    rob.accelDecel(60, -60)
     wait(10)
 
     rob.moveTime(1000, -30)
     wait(300)
 
     # Away from the kir
-    rob.pid(2, 25)
+    rob.pid(3, 25)
     wait(10) 
 
     # Look to the mission
@@ -194,37 +196,39 @@ def run5():
     wait(10)
 
     # Put the arm down
-    arm.run_time(-1000,1000)
+    arm.run_time(-1000, 1000)
+    wait(10)
+    arm.run_angle(1000, 120)
     wait(10)
     
     # drive straight for seconds, because using normal pid will just get it stuck.
-    wheels.drive(50, 0) 
-    wait(2000)
+    wheels.drive(50, 0)  
+    wait(2350)
     wheels.brake()
 
     # Arm up
     wait(10)
-    arm.run_time(1000,1000)
-    wait(10)
+    arm.run_time(500,1000)
+    wait(400)
 
-    # Arm down
+    # # Arm down
     arm.run_time(-1000,1000)
     wait(10)
-
-    # go back
-    # rob.pid(8, -30)
+    arm.run_time(500,500)
+    wait(400)
+    # rob.turn(10, 50)
     # wait(10)
-    # if leftwheel.stalled():
-    #     wheels.brake()
-    rob.moveTime(1000, -30)
+    # rob.moveTime(1400, -30)
+    rob.pid(10, -30)
     wait(10)
 
     # look to the base
-    rob.turn(-90, 50)
+    rob.turn(-100, 50)
     wait(10)
 
     # drive to base
     rob.pid(100, 70)
+
     
 ###
 
@@ -330,8 +334,11 @@ def test():
     # rob_t = Robot_test(kp=1, ki=0, kd=0.1, turnKp=1, turnKi=0, turnKd=0, shellKp=22, shellKi=0, shellKd=20, shellTol=2, turnTol=10, turn_wait_time=1)
     # rob.pid(100000,100)
     # wheels.drive(1000, 
-    arm.run_time(1000, 1000)
-    wait(100000)
+    # arm.run_time(1000, 1000)
+    # # wait(100000)
+    arm.run_time(-700,800)
+    # wait(400)
+    # rob.pid(10, 50)
 
 ###
 
@@ -363,6 +370,6 @@ def battery():
 
 # run8()
 
-test()
+# test()
 
 # battery()

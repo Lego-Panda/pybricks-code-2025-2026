@@ -73,15 +73,18 @@ class Robot:
         self.errorSum = 0
         self.lastError = 0
 
-        min_speed = 100 if speed >= 0 else -100
+        min_speed = 25 if speed >= 0 else -25
+        target_angle = (distance / CIRCUMFERENCE) * 360
 
         twenty_percent_dist = (distance / CIRCUMFERENCE * 360) * 0.2
 
-        while abs(leftwheel.angle()) < distance / CIRCUMFERENCE * 360:
+        while (abs(leftwheel.angle()) + abs(rightwheel.angle())) / 2 < target_angle:
 
-            remaining_distance = (distance / CIRCUMFERENCE * 360) - abs(leftwheel.angle())
+            remaining_distance = (distance / CIRCUMFERENCE * 360) - ((abs(leftwheel.angle()) + abs(rightwheel.angle())) / 2)
 
-            error = 0  - hub.imu.heading()
+            error = -hub.imu.heading()
+
+            self.errorSum = max(-50, min(50, self.errorSum + error))
 
             if abs(leftwheel.angle()) <= twenty_percent_dist and twenty_percent_dist > 0:
                 current_speed = min_speed + (speed - min_speed) * (abs(leftwheel.angle()) / twenty_percent_dist)
@@ -94,11 +97,10 @@ class Robot:
                 
             pidValue = self.kp * error + self.ki * self.errorSum + self.kd * (error - self.lastError)
 
-            rightwheel.run(int(current_speed + pidValue))
-            leftwheel.run(int(current_speed - pidValue))
+            leftwheel.dc(max(-100, min(100, current_speed - pidValue)))
+            rightwheel.dc(max(-100, min(100, current_speed + pidValue)))
 
             self.lastError = error
-            self.errorSum += error
 
             wait(10)
 
